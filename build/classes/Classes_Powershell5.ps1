@@ -6,8 +6,9 @@ Class MyViewModel : UI.SViewModel
     [String]$SelectedMod;
     [String]$SearchBox;
     [String]$ModName;
-    [System.Collections.ObjectModel.ObservableCollection[Object]]$ModDesc;
+    [String]$ModDesc;
     [Boolean]$ModIsInstalled;
+    [Boolean]$ModHasConfig
     [System.Collections.ObjectModel.ObservableCollection[Object]]$ModVersion;
     [Object]$SelectedVersion;
 
