@@ -9,11 +9,13 @@ Sagebreaker
 
 
 #Get script location
+#change when making an executable
+#$global:InstallPath = [Environment]::CurrentDirectory
 $global:InstallPath = Split-Path $MyInvocation.MyCommand.Path
 #Static variables
 $VIEW_NAME = "BaseView.xaml";
-Add-Type -Path "$InstallPath\classes\BaseViewModel.cs";
-. "$InstallPath\classes\Classes_Powershell5.ps1";
+Add-Type -Path "$InstallPath\BaseViewModel.cs";
+. "$InstallPath\Classes_Powershell5.ps1";
 
 $global:ViewModel = [MyViewModel]::new();
 
@@ -33,7 +35,7 @@ Function LoadAssemblies(){
 
 # --- Setting up the window and loading XAML ---
 Function InitDisplay(){
-    $Xaml = [XML](Get-Content "$InstallPath\view\$VIEW_NAME");
+    $Xaml = [XML](Get-Content "$InstallPath\$VIEW_NAME");
     $XamlReader = New-Object System.Xml.XmlNodeReader $Xaml;
     $global:Window = [Windows.Markup.XamlReader]::Load($XamlReader);
 }
