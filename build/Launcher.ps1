@@ -4,7 +4,7 @@ Niozerp
 Sagebreaker
 
 .VERSION
-0.7
+1.1.2
 #>
 
 
@@ -73,18 +73,21 @@ Function Get-ModList{
     }
 }
 
-function Install-Mod($ModURL,$SaveLocation,$ModName,$ror2loc){
+function Install-Mod($ModObject,$SaveLocation,$ror2loc,$owner){
+    $ModURL = $ModObject.download_url
+    $ModName = $ModObject.name
+    $InstallName = "smm-$owner-$($ModObject.name)-$($ModObject.version_number)"
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     try{ Invoke-WebRequest -Uri $ModURL -OutFile "$SaveLocation\$ModName.zip" }catch{return "$($Error[0])"}
-    Expand-Archive -Path "$SaveLocation\$ModName.zip" -DestinationPath "$ror2loc\BepInEx" -Force -ErrorAction SilentlyContinue
+    Expand-Archive -Path "$SaveLocation\$ModName.zip" -DestinationPath "$ror2loc\BepInEx\plugins\$InstallName" -Force #-ErrorAction SilentlyContinue
 }
 
 function Disable-Mod($ModLocation,$ror2loc){
     if(Test-Path -Path "$ror2loc\DisabledMods"){
-        Get-ChildItem "$ModLocation" -Recurse | Move-Item -Destination "$ror2loc\DisabledMods" -Force
+        Move-Item -Path $ModLocation -Destination "$ror2loc\DisabledMods" -Force
     }else{
         New-Item -ItemType Directory -Path "$ror2loc\DisabledMods" -Force
-        Get-ChildItem "$ModLocation" -Recurse | Move-Item -Destination "$ror2loc\DisabledMods" -Force
+        Move-Item -Path $ModLocation -Destination "$ror2loc\DisabledMods" -Force
     }
     
 }
@@ -132,23 +135,25 @@ function Find-ModConfig($ror2loc,$ModName){
 # --- Establishing the list and game location --- 
 
 if(Test-Path "$env:APPDATA\RoR2\Install.md"){
-    $ror2loc = Get-Content "$env:APPDATA\RoR2\Install.md"
+    $global:ror2loc = Get-Content "$env:APPDATA\RoR2\Install.md"
 }else{
-    $ror2loc = Get-Folder -initialDirectory 'C:\'
+    $global:ror2loc = Get-Folder -initialDirectory 'C:\'
     New-Item -Path $env:APPDATA -ItemType Directory -Name 'RoR2'
-    $ror2loc | Out-File -FilePath "$env:APPDATA\RoR2\Install.md"
+    $global:ror2loc | Out-File -FilePath "$env:APPDATA\RoR2\Install.md"
     }
 
-$Mods = ((Get-ModList) | Sort-Object -Property name)
-$InstalledMods = ((Get-InstalledMods $ror2loc) | Sort-Object -Property name)
+$global:Mods = ((Get-ModList) | Sort-Object -Property name)
+$global:InstalledMods = ((Get-InstalledMods $global:ror2loc) | Sort-Object -Property name)
 
-foreach($mod in $Mods){
+foreach($mod in $global:Mods){
     $global:ViewModel.ModList += $mod.name
 }
 $global:ViewModel.NotifyPropertyChanged("ModList")
 
 $global:ViewModel.ModIsInstalled = $false
+$global:viewModel.ModHasConfig = $false
 $global:ViewModel.NotifyPropertyChanged("ModIsInstalled");
+$global:ViewModel.NotifyPropertyChanged("ModHasConfig");
 
 # --- Button Binding ---
 Function CreateButtonListeners(){
@@ -161,26 +166,39 @@ Function CreateButtonListeners(){
     $View_Button = $global:Window.FindName('View_Button');
 
     #grabs the most recent version of BepIsEx and installs it
+    $Update_Button.Add_Click({
+        $global:Mods = ((Get-ModList) | Sort-Object -Property name)
+        $global:InstalledMods = ((Get-InstalledMods $global:ror2loc) | Sort-Object -Property name)
+
+        foreach($mod in $global:Mods){
+        $global:ViewModel.ModList += $mod.name
+        }
+        $global:ViewModel.NotifyPropertyChanged("ModList")
+
+    })
+
     $Install_BepInEx.Add_Click({
-        $Beps = $(($Mods | select -ExpandProperty versions| where name -Like 'BepInExPack') | Sort-Object version_number -Descending)
-        Get-BepInEx -ror2loc $ror2loc -BepURL $Beps[0].download_url
+        $Beps = $(($global:Mods | select -ExpandProperty versions| where name -Like 'BepInExPack') | Sort-Object version_number -Descending)
+        Get-BepInEx -ror2loc $global:ror2loc -BepURL $Beps[0].download_url
     })
 
     $View_Button.Add_Click({
+        $global:InstalledMods = ((Get-InstalledMods $global:ror2loc) | Sort-Object -Property name)
         $global:viewModel.ModVersion = $null
         $global:ViewModel.NotifyPropertyChanged("ModVersion");
-        $currentmod = $(($Mods | Select -ExpandProperty versions | where name -EQ $global:ViewModel.SelectedMod) | Sort-Object version_number -Descending)
+        $currentmod = $(($global:Mods | Select -ExpandProperty versions | where name -EQ $global:ViewModel.SelectedMod) | Sort-Object version_number -Descending)
         $global:ViewModel.ModName = $currentmod[0].name #+ [String]$currentmod[0].description
         $global:viewModel.ModDesc = [String]$currentmod[0].description
+        $global:ViewModel.SelectedVersion = $currentmod[0].version_number
         foreach($modVer in $currentmod){
             $global:ViewModel.ModVersion += $modVer.version_number
         }
-        if([boolean]($InstalledMods.name -like "*$($global:ViewModel.SelectedMod)*")){
+        if([boolean]($global:InstalledMods.name -like "*$($global:ViewModel.SelectedMod)*")){
             $global:ViewModel.ModIsInstalled = $true
         }else{
             $global:ViewModel.ModIsInstalled = $false
         }
-        $ModConfigFile = Find-ModConfig -ModName $global:ViewModel.SelectedMod -ror2loc $ror2loc
+        $ModConfigFile = Find-ModConfig -ModName $global:ViewModel.SelectedMod -ror2loc $global:ror2loc
         if($ModConfigFile -ne $null){
             $global:ViewModel.ModHasConfig = $true
         }else{
@@ -189,16 +207,59 @@ Function CreateButtonListeners(){
         $global:ViewModel.NotifyPropertyChanged("ModName");
         $global:ViewModel.NotifyPropertyChanged("ModDesc");
         $global:ViewModel.NotifyPropertyChanged("ModVersion");
+        $global:ViewModel.NotifyPropertyChanged("SelectedVersion");
         $global:ViewModel.NotifyPropertyChanged("ModIsInstalled");
         $global:ViewModel.NotifyPropertyChanged("ModHasConfig");
     })
 
-    $Install_Button.Add_Click({})
+    $Install_Button.Add_Click({
+        $ModName = $global:ViewModel.ModName
+        $currentmod = $($global:Mods | Select -ExpandProperty versions | where {($_.name -EQ $ModName) -and ($_.version_number -eq $global:ViewModel.SelectedVersion)})
+        $owner = $($global:mods | Where name -EQ $ModName).owner
+        $SaveLocation = "$env:APPDATA\RoR2\"
 
-    $Disable_Button.Add_Click({})
+        Install-Mod -ModObject $currentmod -SaveLocation $SaveLocation -ror2loc $global:ror2loc -owner $owner
+
+        $global:InstalledMods = ((Get-InstalledMods $global:ror2loc) | Sort-Object -Property name)
+
+        #update the buttons
+        if([boolean]($global:InstalledMods.name -like "*$($global:ViewModel.ModName)*")){
+            $global:ViewModel.ModIsInstalled = $true
+        }else{
+            $global:ViewModel.ModIsInstalled = $false
+        }
+        $ModConfigFile = Find-ModConfig -ModName $global:ViewModel.ModName -ror2loc $global:ror2loc
+        if($ModConfigFile -ne $null){
+            $global:ViewModel.ModHasConfig = $true
+        }else{
+            $global:ViewModel.ModHasConfig = $false
+        }
+        $global:ViewModel.NotifyPropertyChanged("ModIsInstalled");
+        $global:ViewModel.NotifyPropertyChanged("ModHasConfig");
+    })
+
+    $Disable_Button.Add_Click({
+        $ModLocation  = $($global:InstalledMods | where name -EQ $global:ViewModel.ModName).install_path
+        Disable-Mod -ModLocation $ModLocation -ror2loc $global:ror2loc
+
+        $global:InstalledMods = ((Get-InstalledMods $global:ror2loc) | Sort-Object -Property name)
+        if([boolean]($global:InstalledMods.name -like "*$($global:ViewModel.ModName)*")){
+            $global:ViewModel.ModIsInstalled = $true
+        }else{
+            $global:ViewModel.ModIsInstalled = $false
+        }
+        $ModConfigFile = Find-ModConfig -ModName $global:ViewModel.ModName -ror2loc $global:ror2loc
+        if($ModConfigFile -ne $null){
+            $global:ViewModel.ModHasConfig = $true
+        }else{
+            $global:ViewModel.ModHasConfig = $false
+        }
+        $global:ViewModel.NotifyPropertyChanged("ModHasConfig");
+        $global:ViewModel.NotifyPropertyChanged("ModIsInstalled");
+    })
 
     $Config_Button.Add_Click({
-        $ModConfigFile = Find-ModConfig -ModName $global:ViewModel.ModName -ror2loc $ror2loc
+        $ModConfigFile = Find-ModConfig -ModName $global:ViewModel.ModName -ror2loc $global:ror2loc
         get-ModConfig -ModConfigLocation $ModConfigFile
     })
 
