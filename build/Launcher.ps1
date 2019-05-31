@@ -1,17 +1,53 @@
-﻿<#
+﻿##[Ps1 To Exe]
+##
+##NcDBCIWOCzWE8paP3wdDwG7CZEQOVvmojZOC6KeQ2tKhlirdBLcVR1VwkzvABl60VfYud/QGsecYUApkN/MG7tI=
+##NcDBCIWOCzWE8paP3wdDwG7CZEQOVvmojZOC6KeQ2tKhlirdBLcVR1VwkzvABl60VfYud/QGsecYUAoHIPYO7vzTCIc=
+##NcDBCIWOCzWE8paP3wdDwG7CZEQOVvmojZOC6KeQ2tKhlirdBLcVR1VwkzvABl60VfYudvkUp8IURiIaIOUO8KHYHuulEOwagbIf
+##Kd3HDZOFADWE8uK1
+##Nc3NCtDXThU=
+##Kd3HFJGZHWLWoLaVvnQnhQ==
+##LM/RF4eFHHGZ7/K1
+##K8rLFtDXTiW5
+##OsHQCZGeTiiZ4NI=
+##OcrLFtDXTiW5
+##LM/BD5WYTiiZ4tI=
+##McvWDJ+OTiiZ4tI=
+##OMvOC56PFnzN8u+VslQ=
+##M9jHFoeYB2Hc8u+VslQ=
+##PdrWFpmIG2HcofKIo2QX
+##OMfRFJyLFzWE8uK1
+##KsfMAp/KUzWI0g==
+##OsfOAYaPHGbQvbyVvnQX
+##LNzNAIWJGmPcoKHc7Do3uAu/DDllPaU=
+##LNzNAIWJGnvYv7eVvnRE0W7Lbk4HS/22trKKxY+9+O/+2w==
+##M9zLA5mED3nfu77Q7TV64AuzAgg=
+##NcDWAYKED3nfu77Q7TV64AuzAgg=
+##OMvRB4KDHmHQvbyVvnQX
+##P8HPFJGEFzWE8pvb5zFk5lnnQGkpYsDbkLijzZKo7ePpqEU=
+##KNzDAJWHD2fS8u+Vgw==
+##P8HSHYKDCX3N8u+Vgw==
+##LNzLEpGeC3fMu77Ro2k3hQ==
+##L97HB5mLAnfMu77Ro2k3hQ==
+##P8HPCZWEGmaZ7/K1
+##L8/UAdDXTlGDjoHhxhFbw2fLelQYWuC+lZCL4bnx0uXo9gjYR5sTTEZLpR3ZIWebddcqFdgasJE8VBMrKPcZrLfIHoc=
+##Kc/BRM3KXBU=
+##
+##
+##fd6a9f26a06ea3bc99616d4851b372ba
+<#
 .AUTHOR
 Niozerp
 Sagebreaker
 
 .VERSION
-1.1.2
+1.1.3
 #>
 
 
 #Get script location
 #change when making an executable
-#$global:InstallPath = [Environment]::CurrentDirectory
-$global:InstallPath = Split-Path $MyInvocation.MyCommand.Path
+$global:InstallPath = [Environment]::CurrentDirectory
+#$global:InstallPath = Split-Path $MyInvocation.MyCommand.Path
 #Static variables
 $VIEW_NAME = "BaseView.xaml";
 Add-Type -Path "$InstallPath\BaseViewModel.cs";
@@ -110,7 +146,11 @@ function Get-BepInEx($ror2loc,$BepURL){
 }
 
 function Get-InstalledMods($ror2loc){
-   $installedModFolders = Get-ChildItem -Path "$ror2loc\BepInEx\plugins"
+   try{
+        $installedModFolders = Get-ChildItem -Path "$ror2loc\BepInEx\plugins" -ErrorAction stop
+   }catch{
+        return [PSCustomObject]$res
+   }
    $InstalledMods = @()
    foreach($modFolder in $installedModFolders){
         $name = $modFolder.Name
