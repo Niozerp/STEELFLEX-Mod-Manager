@@ -40,7 +40,7 @@ Niozerp
 Sagebreaker
 
 .VERSION
-1.1.3
+1.1.4
 #>
 
 
@@ -235,7 +235,7 @@ Function CreateButtonListeners(){
         foreach($modVer in $currentmod){
             $global:ViewModel.ModVersion += $modVer.version_number
         }
-        if([boolean]($global:InstalledMods.name -like "*$($global:ViewModel.SelectedMod)*")){
+        if([boolean]($global:InstalledMods.name -EQ "$($global:ViewModel.SelectedMod)")){
             $global:ViewModel.ModIsInstalled = $true
         }else{
             $global:ViewModel.ModIsInstalled = $false
@@ -265,7 +265,7 @@ Function CreateButtonListeners(){
         $global:InstalledMods = ((Get-InstalledMods $global:ror2loc) | Sort-Object -Property name)
 
         #update the buttons
-        if([boolean]($global:InstalledMods.name -like "*$($global:ViewModel.ModName)*")){
+        if([boolean]($global:InstalledMods.name -EQ "$($global:ViewModel.ModName)")){
             $global:ViewModel.ModIsInstalled = $true
         }else{
             $global:ViewModel.ModIsInstalled = $false
@@ -285,7 +285,7 @@ Function CreateButtonListeners(){
         Disable-Mod -ModLocation $ModLocation -ror2loc $global:ror2loc
 
         $global:InstalledMods = ((Get-InstalledMods $global:ror2loc) | Sort-Object -Property name)
-        if([boolean]($global:InstalledMods.name -like "*$($global:ViewModel.ModName)*")){
+        if([boolean]($global:InstalledMods.name -EQ "$($global:ViewModel.ModName)")){
             $global:ViewModel.ModIsInstalled = $true
         }else{
             $global:ViewModel.ModIsInstalled = $false
