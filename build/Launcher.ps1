@@ -18,7 +18,7 @@
 ##OMfRFJyLFzWE8uK1
 ##KsfMAp/KUzWI0g==
 ##OsfOAYaPHGbQvbyVvnQX
-##LNzNAIWJGmPcoKHc7Do3uAu/DDllO6U=
+##LNzNAIWJGmPcoKHc7Do3uAu/DDllOKU=
 ##LNzNAIWJGnvYv7eVvnRE0W7Lbk4HS/22trKKxY+9+O/+2w==
 ##M9zLA5mED3nfu77Q7TV64AuzAgg=
 ##NcDWAYKED3nfu77Q7TV64AuzAgg=
@@ -40,7 +40,7 @@ Niozerp
 Sagebreaker
 
 .VERSION
-1.1.5
+1.1.6
 #>
 
 
@@ -139,7 +139,7 @@ function Get-BepInEx($ror2loc,$BepURL){
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     Invoke-WebRequest -Uri $BepURL -OutFile "$env:TEMP\RoR2downloads\BepInEx.zip" | Out-Null
     Expand-Archive -Path "$env:TEMP\RoR2downloads\BepInEx.zip" -DestinationPath "$env:TEMP\RoR2downloads\" | Out-Null
-    Copy-Item -Path "$env:TEMP\RoR2downloads\BepInExPack\BepInEx" -Destination "$ror2loc\" -Force | Out-Null
+    Copy-Item -Path "$env:TEMP\RoR2downloads\BepInExPack\BepInEx" -Destination "$ror2loc\" -Recurse -Force | Out-Null
     Copy-Item -Path "$env:TEMP\RoR2downloads\BepInExPack\doorstop_config.ini" -Destination "$ror2loc\doorstop_config.ini" -Force | Out-Null
     Copy-Item -Path "$env:TEMP\RoR2downloads\BepInExPack\winhttp.dll" -Destination "$ror2loc\winhttp.dll" -Force | Out-Null
     Remove-Item -Path "$env:TEMP\RoR2downloads" -Recurse -Force | Out-Null
