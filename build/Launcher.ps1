@@ -18,7 +18,7 @@
 ##OMfRFJyLFzWE8uK1
 ##KsfMAp/KUzWI0g==
 ##OsfOAYaPHGbQvbyVvnQX
-##LNzNAIWJGmPcoKHc7Do3uAu/DDllPaU=
+##LNzNAIWJGmPcoKHc7Do3uAu/DDllO6U=
 ##LNzNAIWJGnvYv7eVvnRE0W7Lbk4HS/22trKKxY+9+O/+2w==
 ##M9zLA5mED3nfu77Q7TV64AuzAgg=
 ##NcDWAYKED3nfu77Q7TV64AuzAgg=
@@ -40,7 +40,7 @@ Niozerp
 Sagebreaker
 
 .VERSION
-1.1.4
+1.1.5
 #>
 
 
@@ -122,10 +122,10 @@ function Install-Mod($ModObject,$SaveLocation,$ror2loc,$owner){
 
 function Disable-Mod($ModLocation,$ror2loc){
     if(Test-Path -Path "$ror2loc\DisabledMods"){
-        Move-Item -Path $ModLocation -Destination "$ror2loc\DisabledMods" -Force
+        robocopy.exe "$ModLocation" "$ror2loc\DisabledMods" /E /NP /Move /IS
     }else{
         New-Item -ItemType Directory -Path "$ror2loc\DisabledMods" -Force
-        Move-Item -Path $ModLocation -Destination "$ror2loc\DisabledMods" -Force
+        robocopy.exe "$ModLocation" "$ror2loc\DisabledMods" /E /NP /Move /IS
     }
     
 }
